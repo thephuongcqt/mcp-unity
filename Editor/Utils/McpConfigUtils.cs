@@ -120,6 +120,15 @@ namespace McpUnity.Utils
             string configFilePath = GetClaudeDesktopConfigPath();
             return AddToConfigFile(configFilePath, useTabsIndentation, "Claude Desktop");
         }
+
+        /// <summary>
+        /// Adds the MCP configuration to the Roo Code config file
+        /// </summary>
+        public static bool AddToRooCodeConfig(bool useTabsIndentation)
+        {
+            string configFilePath = GetRooCodeConfigPath();
+            return AddToConfigFile(configFilePath, useTabsIndentation, "Roo Code");
+        }
         
         /// <summary>
         /// Adds the MCP configuration to the Cursor config file
@@ -260,6 +269,37 @@ namespace McpUnity.Utils
             
             // Return the path to the claude_desktop_config.json file
             return Path.Combine(basePath, "claude_desktop_config.json");
+        }
+
+        /// <summary>
+        /// Gets the path to the Roo Code config file based on the current OS
+        /// </summary>
+        /// <returns>The path to the Roo Code config file</returns>
+        private static string GetRooCodeConfigPath()
+        {
+            // Base path depends on the OS
+            string basePath;
+            
+            if (Application.platform == RuntimePlatform.WindowsEditor)
+            {
+                // Windows: %USERPROFILE%/AppData/Roaming/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings
+                basePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Code", "User", "globalStorage", "rooveterinaryinc.roo-cline", "settings");
+            }
+            else if (Application.platform == RuntimePlatform.OSXEditor)
+            {
+                // macOS: ~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings
+                string homeDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+                basePath = Path.Combine(homeDir, "Library", "Application Support", "Code", "User", "globalStorage", "rooveterinaryinc.roo-cline", "settings");
+            }
+            else
+            {
+                // Unsupported platform
+                Debug.LogError("Unsupported platform for Roo Cline config");
+                return null;
+            }
+            
+            // Return the path to the mcp_settings.json file
+            return Path.Combine(basePath, "mcp_settings.json");
         }
         
         

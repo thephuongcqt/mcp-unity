@@ -27,7 +27,7 @@ namespace McpUnity.Unity
         public static void ShowWindow()
         {
             var window = GetWindow<McpUnityEditorWindow>("MCP Unity");
-            window.minSize = new Vector2(600, 400);
+            window.minSize = new Vector2(800, 400);
         }
 
         private void OnGUI()
@@ -240,6 +240,21 @@ namespace McpUnity.Unity
                 if (added)
                 {
                     EditorUtility.DisplayDialog("Success", "The MCP configuration was successfully added to the Cursor config file.", "OK");
+                }
+            }
+
+            EditorGUILayout.Space();
+            
+            if (GUILayout.Button("Configure Roo Code", GUILayout.Height(30)))
+            {
+                bool added = McpConfigUtils.AddToRooCodeConfig(_tabsIndentationJson);
+                if (added)
+                {
+                    EditorUtility.DisplayDialog("Success", "The MCP configuration was successfully added to the Roo Code config file.", "OK");
+                }
+                else
+                {
+                    EditorUtility.DisplayDialog("Error", "The MCP configuration could not be added to the Roo Code config file.", "OK");
                 }
             }
             
