@@ -11,13 +11,70 @@ export class McpUnity {
     REQUEST_TIMEOUT = 10000;
     constructor(logger) {
         this.logger = logger;
-        // Initialize port from environment variable or use default
-        const envRegistry = process.platform === 'win32'
-            ? this.getUnityPortFromWindowsRegistry()
-            : this.getUnityPortFromUnixRegistry();
-        const envPort = process.env.UNITY_PORT || envRegistry;
-        this.port = envPort ? parseInt(envPort, 10) : 8090;
+        this.port = this.determinePort();
         this.logger.info(`Using port: ${this.port} for Unity WebSocket connection`);
+    }
+    /**
+     * Determines the port to use for Unity WebSocket connection
+     * Priority: ENV Variable > Platform Registry > Default Port
+     */
+    determinePort() {
+        const DEFAULT_PORT = 8090;
+        // First check environment variable
+        const envPort = process.env.UNITY_PORT;
+        if (envPort) {
+            return parseInt(envPort, 10);
+        }
+        // Then check platform-specific registry
+        try {
+            const registryPort = this.getPlatformSpecificPort();
+            if (registryPort) {
+                return parseInt(registryPort, 10);
+            }
+        }
+        catch (error) {
+            this.logger.warn(`Failed to get platform registry port: ${error instanceof Error ? error.message : String(error)}`);
+        }
+        // Fallback to default port
+        return DEFAULT_PORT;
+    }
+    /**
+     * Gets the port value based on the current platform
+     */
+    getPlatformSpecificPort() {
+        switch (process.platform) {
+            case 'win32':
+                return this.getUnityPortFromWindowsRegistry();
+            case 'darwin':
+                return this.getUnityPortFromMacOS();
+            default:
+                return this.getUnityPortFromUnixRegistry();
+        }
+    }
+    /**
+     * Retrieves the UNITY_PORT value from macOS environment
+     * Checks both user's shell profile and launchd
+     */
+    getUnityPortFromMacOS() {
+        try {
+            // Check launchd environment first
+            const launchdPort = execSync('launchctl getenv UNITY_PORT', {
+                stdio: ['pipe', 'pipe', 'ignore']
+            }).toString().trim();
+            if (launchdPort) {
+                return launchdPort;
+            }
+            // Fallback to shell environment
+            return execSync('source ~/.zshrc 2>/dev/null && echo $UNITY_PORT || ' +
+                'source ~/.bash_profile 2>/dev/null && echo $UNITY_PORT', {
+                shell: '/bin/bash',
+                stdio: ['pipe', 'pipe', 'ignore']
+            }).toString().trim();
+        }
+        catch (error) {
+            this.logger.debug(`Failed to get macOS environment: ${error instanceof Error ? error.message : String(error)}`);
+            return '';
+        }
     }
     /**
      * Start the Unity connection

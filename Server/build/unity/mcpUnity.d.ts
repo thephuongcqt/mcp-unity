@@ -12,6 +12,20 @@ export declare class McpUnity {
     private readonly REQUEST_TIMEOUT;
     constructor(logger: Logger);
     /**
+     * Determines the port to use for Unity WebSocket connection
+     * Priority: ENV Variable > Platform Registry > Default Port
+     */
+    private determinePort;
+    /**
+     * Gets the port value based on the current platform
+     */
+    private getPlatformSpecificPort;
+    /**
+     * Retrieves the UNITY_PORT value from macOS environment
+     * Checks both user's shell profile and launchd
+     */
+    private getUnityPortFromMacOS;
+    /**
      * Start the Unity connection
      * @param clientName Optional name of the MCP client connecting to Unity
      */
